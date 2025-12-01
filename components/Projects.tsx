@@ -27,17 +27,61 @@ const IN_PROGRESS_IDS = ['uw2', 'uw3', 'pers1'];
 
 // --- TEMPLATE COMPONENTS ---
 
-const CryoBoilingDetail: React.FC = () => {
+const ImageCarousel: React.FC<{ images: string[]; interval?: number }> = ({ images, interval = 30000 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const IMAGES = ['assets/onemm_photo_1.png', 'assets/onemm_photo_2.png', 'assets/onemm_photo_3.png'];
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
+    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % images.length), interval);
     return () => clearInterval(timer);
-  }, []);
+  }, [images.length, interval]);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
+  const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = event.currentTarget;
+    if (naturalWidth && naturalHeight) {
+      setAspectRatio(naturalWidth / naturalHeight);
+    }
+  };
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % images.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+
+  return (
+    <div
+      className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 group"
+      style={{ aspectRatio: aspectRatio ?? 16 / 9 }}
+    >
+      <div className="absolute inset-0 flex items-center justify-center bg-slate-200">
+        <img
+          src={images[currentSlide]}
+          alt="Project visual"
+          className="w-full h-full object-contain"
+          onLoad={handleImageLoad}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      </div>
+      <button
+        onClick={prevSlide}
+        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        aria-label="Next slide"
+      >
+        <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+};
+
+const CryoBoilingDetail: React.FC = () => {
+  const IMAGES = ['assets/onemm_photo_1.png', 'assets/onemm_photo_2.png', 'assets/onemm_photo_3.png'];
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -69,14 +113,7 @@ const CryoBoilingDetail: React.FC = () => {
               <li>To ensure consistency with previous experiments, all data and experimental methods had to be <strong>cross-checked with previous data collection methods</strong></li>
             </ul>
 
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img src={IMAGES[currentSlide]} alt="Visual" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronLeft size={20} /></button>
-              <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronRight size={20} /></button>
-            </div>
+            <ImageCarousel images={IMAGES} />
 
             <h4 className="font-bold text-slate-900 text-lg mb-2">Action</h4>
             <p className="mb-2">
@@ -97,16 +134,7 @@ const CryoBoilingDetail: React.FC = () => {
 };
 
 const LADDetail: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const IMAGES = ['assets/LAD_1.png', 'assets/LAD_2.png', 'assets/LAD_3.png'];
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -132,14 +160,7 @@ const LADDetail: React.FC = () => {
             <p className="mb-4">This ongoing project aims to improve the reliability of Liquid Acquisition Devices (LADs), hardware used to move cryogenic propellants—such as liquid oxygen, hydrogen, and methane—inside spacecraft under microgravity. LADs must deliver vapor-free liquid to engines and propulsion systems, but heat leaks and pressure differences can cause vapor bubbles to form inside the device, degrading performance.</p>
             <p className="mb-4">While LADs have been used with storable propellants, their behavior with cryogenic fluids is poorly understood, creating uncertainty in propulsion system design for long-duration or in-space refueling missions.</p>
 
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img src={IMAGES[currentSlide]} alt="Visual" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronLeft size={20} /></button>
-              <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronRight size={20} /></button>
-            </div>
+            <ImageCarousel images={IMAGES} />
 
             <h4 className="font-bold text-slate-900 text-lg mb-2">Project Goals</h4>
             <ul className="list-disc pl-4 space-y-1 mb-4">
@@ -163,16 +184,7 @@ const LADDetail: React.FC = () => {
 };
 
 const LaplacianDetail: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const IMAGES = ['assets/cardio_photo_1.png', 'assets/cardio_photo_2.png', 'assets/cardio_photo_3.png'];
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -201,14 +213,7 @@ const LaplacianDetail: React.FC = () => {
               <li>Computational cost of <strong>remeshing</strong>.</li>
               <li>Maintaining <strong>geometric fidelity</strong>.</li>
             </ul>
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img src={IMAGES[currentSlide]} alt="Visual" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronLeft size={20} /></button>
-              <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronRight size={20} /></button>
-            </div>
+            <ImageCarousel images={IMAGES} />
             <h4 className="font-bold text-slate-900 text-lg mb-2">Action</h4>
             <p className="mb-2">Developed scripts in <strong>MATLAB</strong> and <strong>Bash</strong> to automate the smoothing process.</p>
             <h4 className="font-bold text-slate-900 text-lg mb-2">Results</h4>
@@ -221,16 +226,7 @@ const LaplacianDetail: React.FC = () => {
 };
 
 const RocketNozzleDetail: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const IMAGES = ['assets/SEDS_photo1.png', 'assets/SEDS_photo2.png', 'assets/SEDS_photo3.png'];
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -256,14 +252,7 @@ const RocketNozzleDetail: React.FC = () => {
             <p className="mb-4">As part of the SEDS propulsion team, I contributed to the design and testing of a 350 lbf bipropellant liquid rocket engine, with a focus on the thermal performance of the combustion chamber and nozzle during hot-fire operations.</p>
             <h4 className="font-bold text-slate-900 text-lg mb-2">Challenges</h4>
             <p className="mb-4">A particular challenge was calculating the convective heat transfer coefficient of the film cooling layer. To do so, I referenced literature such as Sutton's Rocket Propulsion Elements and Huzel & Huang to determine appropriate formulae that used the Prandtl and Nusselt for calculations. I tried multiple methods and came to HTC that closely matched Rocket Propulsion Analysis (RPA)'s calculations.</p>
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img src={IMAGES[currentSlide]} alt="Visual" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronLeft size={20} /></button>
-              <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronRight size={20} /></button>
-            </div>
+            <ImageCarousel images={IMAGES} />
             <h4 className="font-bold text-slate-900 text-lg mb-2">Action</h4>
             <p className="mb-2">I performed a <strong>detailed thermal analysis</strong> to estimate combustion temperature, wall heat flux, and material temperature gradients throughout the engine cycle.</p>
             <p className="mb-2">I created a <strong>2-D thermal resistance network in MATLAB</strong> to model combustion temps via NASA CEA data, convective heat transfer, film layer cooling, and conduction through the ablative and metal outer wall. I programmed a script to <strong>determine the convective heat transfer coefficient</strong> and account for carbon sediment buildup due to the ablative.</p>
@@ -277,16 +266,7 @@ const RocketNozzleDetail: React.FC = () => {
 };
 
 const CropYieldDetail: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const IMAGES = ['assets/usda_photo_1.png', 'assets/usda_photo_2.png', 'assets/usda_photo_3.png'];
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -314,14 +294,7 @@ const CropYieldDetail: React.FC = () => {
             <h4 className="font-bold text-slate-900 text-lg mb-2">Challenges</h4>
             <p className="mb-4">The primary challenge was handling unstructured data. Agronomic data existed in <strong>200+ PDF farm reports</strong>, requiring significant cleaning and standardization to create a unified database for training.</p>
             
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img src={IMAGES[currentSlide]} alt="Visual" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronLeft size={20} /></button>
-              <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronRight size={20} /></button>
-            </div>
+            <ImageCarousel images={IMAGES} />
             
             <h4 className="font-bold text-slate-900 text-lg mb-2">Action</h4>
             <p className="mb-2">I engineered an <strong>automated data pipeline using Python and Pandas</strong> to extract, clean, and standardize this data, reducing data entry time by <strong>85%</strong>.</p>
@@ -338,16 +311,7 @@ const CropYieldDetail: React.FC = () => {
 };
 
 const AfibDetail: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const IMAGES = ['assets/af_project_photo1.png', 'assets/af_project_photo2.png', 'assets/af_project_photo3.png'];
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -374,14 +338,7 @@ const AfibDetail: React.FC = () => {
             <h4 className="font-bold text-slate-900 text-lg mb-2">Challenges</h4>
             <p className="mb-4">I'll use two PhysioNet databases containing ECG data specifically collected from patients with AF and compare different machine learning models and strategies.</p>
             <p className="mb-4 italic">I'm still working on it, check back later for updates!</p>
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img src={IMAGES[currentSlide]} alt="Visual" className="w-full h-full object-cover" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              <button onClick={prevSlide} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronLeft size={20} /></button>
-              <button onClick={nextSlide} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"><ChevronRight size={20} /></button>
-            </div>
+            <ImageCarousel images={IMAGES} />
           </div>
         </div>
       </div>
@@ -962,16 +919,7 @@ const ThermalOptimizationDetail: React.FC = () => {
 };
 
 const LunarRoverDetail: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const IMAGES = ['assets/rover_photo_1.png', 'assets/rover_photo_2.png', 'assets/rover_photo_3.png'];
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % IMAGES.length), 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + IMAGES.length) % IMAGES.length);
 
   return (
     <div className="w-full font-sans text-slate-800">
@@ -1032,32 +980,7 @@ const LunarRoverDetail: React.FC = () => {
             </ul>
 
             {/* Slideshow */}
-            <div className="my-10 relative bg-slate-100 rounded-lg overflow-hidden shadow-sm border border-slate-200 aspect-video group">
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-200 text-slate-400">
-                <img 
-                  src={IMAGES[currentSlide]} 
-                  alt="Visual" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => e.currentTarget.style.display = 'none'}
-                />
-                <span className="absolute z-0 text-sm font-medium">Image Placeholder: {IMAGES[currentSlide]}</span>
-              </div>
-              
-              {/* Controls */}
-              <button 
-                onClick={prevSlide}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              
-              <button 
-                onClick={nextSlide}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full hover:bg-white text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+            <ImageCarousel images={IMAGES} />
 
             <h4 className="font-bold text-slate-900 text-lg mb-2">Action</h4>
             <p className="mb-4">I took this project from cradle to grave, starting with a robust system-level requirements list and Concept of Operations based on real temperature data pulled from the LRO Diviner mission to generate accurate hot and cold case environmental profiles.</p>
