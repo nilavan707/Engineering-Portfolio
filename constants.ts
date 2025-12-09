@@ -330,6 +330,14 @@ export const PROJECTS: ProjectItem[] = [
 
 export const PUBLICATIONS: PublicationItem[] = [
   {
+    id: 'pub3',
+    title: "American Society for Gravitational and Space Research Annual Conference Presentation",
+    venue: "December 4th, 2025",
+    status: "Phoenix, AZ",
+    description: "Optimizing surfaces to enhance cryogenic boiling for space applications",
+    link: "assets/Cryoboiling-ASGSR-2025-Final.pdf"
+  },
+  {
     id: 'pub1',
     title: "Blue Origin LAD Paper",
     venue: "Upcoming",
